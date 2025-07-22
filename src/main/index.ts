@@ -51,7 +51,9 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
-  ipcMain.on
+  ipcMain.on('click', (event, data) => {
+    console.log('Click event:', data)
+  })
 
   createWindow()
 
