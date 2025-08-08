@@ -1,34 +1,18 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
-import { useEffect, useState } from 'react'
+import useWheelZoom from './hooks';
 
 function App(): React.JSX.Element {
-  const [scale, setScale] = useState<number>(1)
-  const [translate, setTranslate] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const { ref, style, transform, handleWheel, resetZoom } = useWheelZoom(1, 0.5, 2, 0.05);
 
-  const handleZoomWheel = (e: React.WheelEvent<HTMLDivElement>): void => {
-    if (e.ctrlKey) {
-      e.preventDefault()
-
-      let newScale = scale
-      if (e.deltaY < 0) {
-        newScale += 0.1
-      } else {
-        newScale -= 0.1
-      }
-
-      newScale = Math.max(0.5, Math.min(newScale, 2))
-      setScale(newScale)
-    }
-  }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    window.electron.ipcRenderer.send('click'
-    , {
+    window.electron.ipcRenderer.send('click', {
       x: e.clientX,
       y: e.clientY,
-      scale: scale,
-      translate: translate
+      scale: transform.scale,
+      translate: {
+        x: transform.translateX,
+        y: transform.translateY
+      }
     })
   }
 
@@ -43,15 +27,13 @@ function App(): React.JSX.Element {
             style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
           >
             <div
+              ref={ref}
               className="editor-pane"
               style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
-              onWheel={handleZoomWheel}
+              onWheel={handleWheel}
               onClick={handleClick}
             >
-              <div
-                className="eidtor-viewport editor-container"
-                style={{ transform: `translate(0px, 0px) scale(${scale})` }}
-              >
+              <div className="editor-viewport editor-container" style={style}>
                 <div
                   className="editor-edges"
                   style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
@@ -59,15 +41,46 @@ function App(): React.JSX.Element {
                 <div
                   className="editor-nodes"
                   style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
-                ></div>
+                >
+                  <div
+                    className="editor-node"
+                    style={{
+                      zIndex: 1000,
+                      transform: `translate(${0}px, ${275}px)`,
+                      background: 'red'
+                    }}
+                  >
+                    dfadfa
+                  </div>
+                </div>
               </div>
             </div>
             <svg
               className="background"
-              style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, zIndex: -1 }}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+                zIndex: -1
+              }}
             >
-              <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx={0.5 * scale} cy={0.5 * scale} r={0.5 * scale} fill="#91919a" />
+              <pattern
+                id="grid-pattern"
+                x={transform.translateX % (12 * transform.scale)}
+                y={transform.translateY % (12 * transform.scale)}
+                width={12 * transform.scale}
+                height={12 * transform.scale}
+                patternUnits="userSpaceOnUse"
+                patternTransform={`translate(${-7 * transform.scale}, ${-7 * transform.scale})`}
+              >
+                <circle
+                  cx={0.5 * transform.scale}
+                  cy={0.5 * transform.scale}
+                  r={0.5 * transform.scale}
+                  fill="#91919a"
+                />
               </pattern>
               <rect x="0" y="0" width="100%" height="100%" fill="url(#grid-pattern)" />
             </svg>
