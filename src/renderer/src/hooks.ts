@@ -1,4 +1,4 @@
-import { CSSProperties, RefObject, useCallback, useRef, useState } from 'react'
+import { CSSProperties, RefObject, useCallback, useEffect, useRef, useState } from 'react'
 
 interface Transform {
   scale: number
@@ -19,6 +19,8 @@ interface UseWheelZoomReturn {
 }
 
 const useWheelZoom = (
+  initialX: number = 0,
+  initialY: number = 0,
   initialScale: number = 1,
   minScale: number = 0.5,
   maxScale: number = 3,
@@ -27,8 +29,8 @@ const useWheelZoom = (
   const ref = useRef<HTMLDivElement | null>(null)
   const [transform, setTransform] = useState<Transform>({
     scale: initialScale,
-    translateX: 0,
-    translateY: 0
+    translateX: initialX,
+    translateY: initialY
   })
   const [isDragging, setIsDragging] = useState<boolean>(false)
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
@@ -36,6 +38,7 @@ const useWheelZoom = (
   const handleWheel = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
       e.preventDefault()
+      e.stopPropagation()
 
       if (!ref.current) return
 
@@ -64,36 +67,41 @@ const useWheelZoom = (
     [transform, minScale, maxScale, zoomStep]
   )
 
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault()
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
 
-    setIsDragging(true)
-    setDragStart({ x: e.clientX, y: e.clientY })
-  }, [])
+      setIsDragging(true)
+      setDragStart({
+        x: e.clientX - transform.translateX * transform.scale,
+        y: e.clientY - transform.translateY * transform.scale
+      })
+    },
+    [transform]
+  )
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      if (!isDragging || !dragStart || !ref.current) return
+      if (!isDragging || !dragStart) return
 
-      const deltaX = e.clientX - dragStart.x
-      const deltaY = e.clientY - dragStart.y
+      const deltaX = (e.clientX - dragStart.x) / transform.scale
+      const deltaY = (e.clientY - dragStart.y) / transform.scale
 
       setTransform((prev) => ({
         ...prev,
-        translateX: prev.translateX + deltaX,
-        translateY: prev.translateY + deltaY
+        translateX: deltaX,
+        translateY: deltaY
       }))
-
-      setDragStart({ x: e.clientX, y: e.clientY })
     },
-    [isDragging, dragStart]
+    [isDragging, dragStart, transform.scale]
   )
 
   const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault()
+    // e.preventDefault()
+    // e.stopPropagation()
     setIsDragging(false)
-    setDragStart(null)
+    // setDragStart(null)
   }, [])
 
   const resetZoom = useCallback(() => {
@@ -103,6 +111,18 @@ const useWheelZoom = (
       translateY: 0
     })
   }, [initialScale])
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, dragStart])
 
   const style = {
     transform: `translate(${transform.translateX}px, ${transform.translateY}px) scale(${transform.scale})`,

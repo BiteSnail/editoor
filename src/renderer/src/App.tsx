@@ -1,8 +1,9 @@
+import { useEffect } from 'react';
+import EditorNode from './components/Node';
 import useWheelZoom from './hooks';
 
 function App(): React.JSX.Element {
-  const { ref, style, transform, handleWheel, resetZoom, isDragging, handleMouseDown, handleMouseMove, handleMouseUp } = useWheelZoom(1, 0.5, 2, 0.05);
-
+  const { ref, style, transform, handleWheel, resetZoom, isDragging, handleMouseDown, handleMouseMove, handleMouseUp } = useWheelZoom();
 
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
@@ -30,18 +31,13 @@ function App(): React.JSX.Element {
                 />
                 <div
                   className="editor-nodes"
-                  style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
+                  style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, zIndex: 1000, cursor: 'default'}}
                 >
-                  <div
-                    className="editor-node"
-                    style={{
-                      zIndex: 1000,
-                      transform: `translate(${0}px, ${275}px)`,
-                      background: 'red'
-                    }}
-                  >
-                    dfadfa
-                  </div>
+                  <EditorNode>
+                    <div style={{ width: '100%', height: '100%', background: 'blue' }}>
+                      hi
+                      </div>
+                  </EditorNode>
                 </div>
               </div>
             </div>
