@@ -1,20 +1,8 @@
 import useWheelZoom from './hooks';
 
 function App(): React.JSX.Element {
-  const { ref, style, transform, handleWheel, resetZoom } = useWheelZoom(1, 0.5, 2, 0.05);
+  const { ref, style, transform, handleWheel, resetZoom, isDragging, handleMouseDown, handleMouseMove, handleMouseUp } = useWheelZoom(1, 0.5, 2, 0.05);
 
-
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    window.electron.ipcRenderer.send('click', {
-      x: e.clientX,
-      y: e.clientY,
-      scale: transform.scale,
-      translate: {
-        x: transform.translateX,
-        y: transform.translateY
-      }
-    })
-  }
 
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
@@ -29,9 +17,11 @@ function App(): React.JSX.Element {
             <div
               ref={ref}
               className="editor-pane"
-              style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}
+              style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, cursor: isDragging ? 'grabbing' : 'grab' }}
               onWheel={handleWheel}
-              onClick={handleClick}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
             >
               <div className="editor-viewport editor-container" style={style}>
                 <div
