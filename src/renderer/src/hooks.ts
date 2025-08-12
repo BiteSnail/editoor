@@ -16,6 +16,7 @@ interface UseWheelZoomReturn {
   handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void
   handleMouseUp: (e: React.MouseEvent<HTMLDivElement>) => void
+  setScale: (scale: number) => void
 }
 
 const useWheelZoom = (
@@ -97,11 +98,15 @@ const useWheelZoom = (
     [isDragging, dragStart, transform.scale]
   )
 
-  const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // e.preventDefault()
-    // e.stopPropagation()
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false)
-    // setDragStart(null)
+  }, [])
+
+  const setScale = useCallback((scale: number) => {
+    setTransform((prev) => ({
+      ...prev,
+      scale
+    }))
   }, [])
 
   const resetZoom = useCallback(() => {
@@ -122,7 +127,7 @@ const useWheelZoom = (
         document.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [isDragging, dragStart])
+  }, [isDragging, dragStart, handleMouseMove, handleMouseUp])
 
   const style = {
     transform: `translate(${transform.translateX}px, ${transform.translateY}px) scale(${transform.scale})`,
@@ -138,7 +143,8 @@ const useWheelZoom = (
     isDragging,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp
+    handleMouseUp,
+    setScale
   }
 }
 

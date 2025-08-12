@@ -1,9 +1,18 @@
-import { useEffect } from 'react';
-import EditorNode from './components/Node';
-import useWheelZoom from './hooks';
+import EditorNode from './components/Node'
+import useWheelZoom from './hooks'
 
 function App(): React.JSX.Element {
-  const { ref, style, transform, handleWheel, resetZoom, isDragging, handleMouseDown, handleMouseMove, handleMouseUp } = useWheelZoom();
+  const {
+    ref,
+    style,
+    transform,
+    handleWheel,
+    resetZoom,
+    isDragging,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp
+  } = useWheelZoom()
 
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 
@@ -18,7 +27,14 @@ function App(): React.JSX.Element {
             <div
               ref={ref}
               className="editor-pane"
-              style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, cursor: isDragging ? 'grabbing' : 'grab' }}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+                cursor: isDragging ? 'grabbing' : 'grab'
+              }}
               onWheel={handleWheel}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -31,13 +47,24 @@ function App(): React.JSX.Element {
                 />
                 <div
                   className="editor-nodes"
-                  style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, zIndex: 1000, cursor: 'default'}}
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    top: 0,
+                    left: 0,
+                    zIndex: 1000,
+                    cursor: 'default'
+                  }}
                 >
-                  <EditorNode>
-                    <div style={{ width: '100%', height: '100%', background: 'blue' }}>
-                      hi
-                      </div>
-                  </EditorNode>
+                  <EditorNode
+                    nodeType="sql"
+                    id="003"
+                    title="사용자 정보 조회"
+                    x={0}
+                    y={70}
+                    scale={transform.scale}
+                  ></EditorNode>
                 </div>
               </div>
             </div>
